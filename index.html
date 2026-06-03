@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#e31e24">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Hero Frame Maker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #e31e24;
+    --red-dark: #a8000a;
+    --gray: #f4f4f4;
+    --gray2: #e8e8e8;
+    --text: #1a1a1a;
+    --text2: #666;
+    --radius: 16px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.10);
+    --shadow-red: 0 4px 20px rgba(227,30,36,0.25);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Nunito', sans-serif; background: #efefef; min-height: 100vh; overflow-x: hidden; }
+
+  /* TOP BAR */
+  .topbar { background: var(--red); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(227,30,36,0.35); }
+  .topbar-inner { max-width: 520px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  .topbar-logo { width: 42px; height: 42px; background: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .topbar-logo svg { width: 28px; height: 28px; }
+  .topbar-text h1 { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 0.5px; line-height: 1; }
+  .topbar-text p { font-size: 11px; color: rgba(255,255,255,0.82); margin-top: 2px; font-weight: 600; }
+
+  /* MAIN */
+  .main { max-width: 520px; margin: 0 auto; padding: 14px 12px 40px; }
+
+  /* CARD */
+  .card { background: #fff; border-radius: var(--radius); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
+  .card-label { font-size: 11px; font-weight: 800; color: var(--red); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .card-label::before { content: ''; width: 3px; height: 14px; background: var(--red); border-radius: 2px; display: inline-block; }
+
+  /* FRAME GRID */
+  .frame-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .frame-opt {
+    border: 2.5px solid var(--gray2); border-radius: 12px; padding: 8px 6px 7px;
+    cursor: pointer; text-align: center; transition: all 0.15s; background: var(--gray); position: relative;
+  }
+  .frame-opt:active { transform: scale(0.95); }
+  .frame-opt.active { border-color: var(--red); background: #fff5f5; }
+  .frame-opt.active::after { content: '✓'; position: absolute; top: 5px; right: 7px; font-size: 11px; font-weight: 900; color: var(--red); }
+  .frame-thumb { width: 100%; aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 5px; }
+  .frame-opt span { font-size: 11px; font-weight: 700; color: var(--text2); }
+  .frame-opt.active span { color: var(--red); }
+
+  /* UPLOAD ZONE — shown after frame pick */
+  .upload-zone {
+    border: 2.5px dashed #e0e0e0; border-radius: 12px; padding: 28px 16px;
+    text-align: center; cursor: pointer; transition: all 0.2s; background: #fafafa;
+  }
+  .upload-zone:active { transform: scale(0.98); }
+  .upload-zone.has-photo { border-color: var(--red); background: #fff5f5; }
+  .uz-icon { width: 52px; height: 52px; background: var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; box-shadow: var(--shadow-red); }
+  .uz-icon svg { width: 26px; height: 26px; fill: #fff; }
+  .uz-icon.green { background: #22c55e; box-shadow: 0 4px 16px rgba(34,197,94,0.3); }
+  .uz-title { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 3px; }
+  .uz-title.green { color: #16a34a; }
+  .uz-sub { font-size: 12px; color: var(--text2); font-weight: 600; }
+
+  /* INPUTS */
+  .input-group { margin-bottom: 10px; }
+  .input-group:last-child { margin-bottom: 0; }
+  .input-group label { display: block; font-size: 12px; font-weight: 800; color: var(--text2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .input-group input { width: 100%; border: 1.5px solid var(--gray2); border-radius: 10px; padding: 11px 14px; font-size: 15px; font-family: 'Nunito', sans-serif; font-weight: 700; color: var(--text); background: #fafafa; outline: none; transition: border-color 0.15s; }
+  .input-group input:focus { border-color: var(--red); background: #fff; }
+  .input-group input::placeholder { color: #bbb; font-weight: 600; }
+
+  /* PREVIEW */
+  .preview-wrap { display: flex; justify-content: center; margin-bottom: 14px; }
+  #mainCanvas { width: 100%; max-width: 400px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); display: block; }
+
+  /* BUTTONS */
+  .btn-row { display: flex; gap: 10px; }
+  .btn { flex: 1; padding: 14px 8px; border-radius: 12px; border: none; cursor: pointer; font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 7px; transition: all 0.15s; }
+  .btn:active { transform: scale(0.96); }
+  .btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .btn-retake { background: var(--gray); color: var(--text); border: 1.5px solid var(--gray2); }
+  .btn-retake svg { fill: var(--text); }
+  .btn-download { background: var(--red); color: #fff; box-shadow: var(--shadow-red); }
+  .btn-download svg { fill: #fff; }
+
+  /* TIP */
+  .tip { text-align: center; font-size: 12px; font-weight: 700; color: var(--text2); margin-top: 10px; padding: 8px 12px; background: #f9f9f9; border-radius: 8px; }
+
+  /* POPUP */
+  .popup-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 300; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+  .popup-overlay.show { opacity: 1; pointer-events: all; }
+  .popup-box { background: #fff; border-radius: 20px 20px 0 0; padding: 20px 16px 36px; width: 100%; max-width: 520px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(.32,.72,0,1); }
+  .popup-overlay.show .popup-box { transform: translateY(0); }
+  .popup-handle { width: 40px; height: 4px; background: #e0e0e0; border-radius: 2px; margin: 0 auto 18px; }
+  .popup-title { font-size: 17px; font-weight: 800; color: var(--text); text-align: center; margin-bottom: 6px; }
+  .popup-subtitle { font-size: 12px; font-weight: 600; color: var(--text2); text-align: center; margin-bottom: 16px; }
+  .popup-btns { display: flex; flex-direction: column; gap: 10px; }
+  .popup-btn { display: flex; align-items: center; gap: 14px; padding: 15px 16px; border-radius: 14px; border: none; cursor: pointer; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700; transition: all 0.15s; width: 100%; text-align: left; }
+  .popup-btn:active { transform: scale(0.97); }
+  .popup-btn.p-camera { background: var(--red); color: #fff; box-shadow: var(--shadow-red); }
+  .popup-btn.p-gallery { background: var(--gray); color: var(--text); border: 1.5px solid var(--gray2); }
+  .pbicon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .p-camera .pbicon { background: rgba(255,255,255,0.2); }
+  .p-gallery .pbicon { background: #fff; }
+  .pbicon svg { width: 22px; height: 22px; }
+  .p-camera .pbicon svg { fill: #fff; }
+  .p-gallery .pbicon svg { fill: var(--red); }
+  .pbtxt strong { display: block; font-size: 15px; font-weight: 800; line-height: 1.2; }
+  .pbtxt span { font-size: 12px; opacity: 0.72; font-weight: 600; }
+  .popup-cancel { margin-top: 10px; width: 100%; padding: 13px; background: none; border: none; cursor: pointer; font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700; color: var(--text2); }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1a1a1a; color: #fff; padding: 12px 22px; border-radius: 50px; font-size: 13px; font-weight: 700; z-index: 999; transition: transform 0.3s cubic-bezier(.32,.72,0,1); white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .footer { text-align: center; font-size: 11px; color: #bbb; font-weight: 700; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-logo">
+      <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <rect width="40" height="40" rx="8" fill="#e31e24"/>
+        <text x="20" y="17" text-anchor="middle" font-family="Rajdhani,sans-serif" font-size="10" font-weight="700" fill="white">HERO</text>
+        <text x="20" y="28" text-anchor="middle" font-family="Rajdhani,sans-serif" font-size="8" font-weight="600" fill="rgba(255,255,255,0.85)">MOTO</text>
+      </svg>
+    </div>
+    <div class="topbar-text">
+      <h1>Hero Frame Maker</h1>
+      <p>Create your showroom social media post</p>
+    </div>
+  </div>
+</div>
+
+<!-- PHOTO SOURCE POPUP -->
+<div class="popup-overlay" id="popup">
+  <div class="popup-box">
+    <div class="popup-handle"></div>
+    <div class="popup-title">Add Your Photo</div>
+    <div class="popup-subtitle" id="popupSubtitle">Choose how you want to add the photo</div>
+    <div class="popup-btns">
+      <button type="button" class="popup-btn p-camera" id="btnCamera">
+        <div class="pbicon">
+          <svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm7-11h-1.586l-1.707-1.707A1 1 0 0 0 15 1H9a1 1 0 0 0-.707.293L6.586 3H5C3.346 3 2 4.346 2 6v13c0 1.654 1.346 3 3 3h14c1.654 0 3-1.346 3-3V6c0-1.654-1.346-3-3-3zm1 16c0 .551-.449 1-1 1H5c-.551 0-1-.449-1-1V6c0-.551.449-1 1-1h2a1 1 0 0 0 .707-.293L9.414 3h5.172l1.707 1.707A1 1 0 0 0 17 5h2c.551 0 1 .449 1 1v13z"/></svg>
+        </div>
+        <div class="pbtxt">
+          <strong>Take Photo Now</strong>
+          <span>Open camera directly</span>
+        </div>
+      </button>
+      <button type="button" class="popup-btn p-gallery" id="btnGallery">
+        <div class="pbicon">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2zM5 19V5h14l.001 14H5zm4.707-5.707 2-2a1 1 0 0 1 1.414 0l4 4-1.414 1.414L12 13.414l-1.293 1.293-1.414-1.414zM8 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>
+        </div>
+        <div class="pbtxt">
+          <strong>Choose from Gallery</strong>
+          <span>Pick an existing photo</span>
+        </div>
+      </button>
+    </div>
+    <button type="button" class="popup-cancel" id="btnCancel">Cancel</button>
+  </div>
+</div>
+
+<!-- HIDDEN FILE INPUTS — MUST be in DOM, never inside popup -->
+<input type="file" id="camInput" accept="image/*" capture="environment" style="position:absolute;left:-9999px;opacity:0;width:1px;height:1px;">
+<input type="file" id="galInput" accept="image/*" style="position:absolute;left:-9999px;opacity:0;width:1px;height:1px;">
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<div class="main">
+
+  <!-- STEP 1: CHOOSE FRAME -->
+  <div class="card">
+    <div class="card-label">Step 1 — Choose Your Frame</div>
+    <div class="frame-grid">
+      <div class="frame-opt active" data-frame="0" onclick="pickFrame(0, this)">
+        <div class="frame-thumb" style="background:#e31e24;">🏍️</div>
+        <span>Classic Red</span>
+      </div>
+      <div class="frame-opt" data-frame="1" onclick="pickFrame(1, this)">
+        <div class="frame-thumb" style="background:#111;">⚡</div>
+        <span>Sport Black</span>
+      </div>
+      <div class="frame-opt" data-frame="2" onclick="pickFrame(2, this)">
+        <div class="frame-thumb" style="background:#ff6b00;">🌟</div>
+        <span>Festival</span>
+      </div>
+      <div class="frame-opt" data-frame="3" onclick="pickFrame(3, this)">
+        <div class="frame-thumb" style="background:#006633;">🇮🇳</div>
+        <span>Tricolor</span>
+      </div>
+      <div class="frame-opt" data-frame="4" onclick="pickFrame(4, this)">
+        <div class="frame-thumb" style="background:#1a237e;">💎</div>
+        <span>Premium</span>
+      </div>
+      <div class="frame-opt" data-frame="5" onclick="pickFrame(5, this)">
+        <div class="frame-thumb" style="background:#f0f0f0;border:1px solid #ddd;">☀️</div>
+        <span>White</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: ADD PHOTO -->
+  <div class="card">
+    <div class="card-label">Step 2 — Add Your Photo</div>
+    <div class="upload-zone" id="uploadZone" onclick="openPopup()">
+      <div class="uz-icon" id="uzIcon">
+        <svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm7-11h-1.586l-1.707-1.707A1 1 0 0 0 15 1H9a1 1 0 0 0-.707.293L6.586 3H5C3.346 3 2 4.346 2 6v13c0 1.654 1.346 3 3 3h14c1.654 0 3-1.346 3-3V6c0-1.654-1.346-3-3-3zm1 16c0 .551-.449 1-1 1H5c-.551 0-1-.449-1-1V6c0-.551.449-1 1-1h2a1 1 0 0 0 .707-.293L9.414 3h5.172l1.707 1.707A1 1 0 0 0 17 5h2c.551 0 1 .449 1 1v13z"/></svg>
+      </div>
+      <div class="uz-title" id="uzTitle">Tap to Add Photo</div>
+      <div class="uz-sub" id="uzSub">Take photo or choose from gallery</div>
+    </div>
+  </div>
+
+  <!-- STEP 3: DETAILS -->
+  <div class="card">
+    <div class="card-label">Step 3 — Your Details</div>
+    <div class="input-group">
+      <label>Customer Name</label>
+      <input type="text" id="inp_name" placeholder="e.g. Ramesh Kumar" oninput="redraw()">
+    </div>
+    <div class="input-group">
+      <label>Showroom Name</label>
+      <input type="text" id="inp_show" placeholder="e.g. Shri Ram Hero Motors" value="Hero MotoCorp" oninput="redraw()">
+    </div>
+  </div>
+
+  <!-- STEP 4: PREVIEW & SAVE -->
+  <div class="card">
+    <div class="card-label">Step 4 — Preview & Save</div>
+    <div class="preview-wrap">
+      <canvas id="mainCanvas" width="600" height="600"></canvas>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn btn-retake" onclick="openPopup()">
+        <svg viewBox="0 0 24 24"><path d="M13.5 2c-5.621 0-10.211 4.443-10.475 10h-3.025l5 6.625 5-6.625h-2.975c.257-3.351 3.06-6 6.475-6 3.584 0 6.5 2.916 6.5 6.5s-2.916 6.5-6.5 6.5c-1.863 0-3.542-.793-4.728-2.053l-2.427 3.216c1.877 1.754 4.389 2.837 7.155 2.837 5.79 0 10.5-4.71 10.5-10.5s-4.71-10.5-10.5-10.5z"/></svg>
+        Retake
+      </button>
+      <button type="button" class="btn btn-download" onclick="downloadImage()">
+        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5z"/></svg>
+        Save to Phone
+      </button>
+    </div>
+    <div class="tip">💡 After saving, share on WhatsApp or Facebook!</div>
+  </div>
+
+  <div class="footer">Hero Frame Maker — Made for Hero Showrooms</div>
+</div>
+
+<script>
+// ── STATE ──
+var userImg = null;
+var selectedFrame = 0;
+var canvas = document.getElementById('mainCanvas');
+var ctx = canvas.getContext('2d');
+
+var FRAMES = [
+  { name:'Classic Red',  bg:'#e31e24', dark:'#8b0000', accent:'#ffffff', sub:'#ffdd00' },
+  { name:'Sport Black',  bg:'#111111', dark:'#000000', accent:'#e31e24', sub:'#ffffff' },
+  { name:'Festival',     bg:'#ff6b00', dark:'#b34400', accent:'#ffffff', sub:'#ffee00' },
+  { name:'Tricolor',     bg:'#006633', dark:'#003d1f', accent:'#ffffff', sub:'#ff9933' },
+  { name:'Premium Blue', bg:'#1a237e', dark:'#0d1257', accent:'#ffffff', sub:'#ffd700' },
+  { name:'White',        bg:'#f5f5f5', dark:'#e0e0e0', accent:'#e31e24', sub:'#222222' }
+];
+
+// ── FRAME PICK ──
+function pickFrame(i, el) {
+  selectedFrame = i;
+  document.querySelectorAll('.frame-opt').forEach(function(e) { e.classList.remove('active'); });
+  el.classList.add('active');
+  redraw();
+  // auto open popup after picking frame if no photo yet
+  if (!userImg) {
+    setTimeout(function() { openPopup(); }, 300);
+  }
+}
+
+// ── POPUP ──
+function openPopup() {
+  document.getElementById('popup').classList.add('show');
+}
+function closePopup() {
+  document.getElementById('popup').classList.remove('show');
+}
+
+// Camera button — open file input immediately so browser keeps the user gesture
+document.getElementById('btnCamera').addEventListener('click', function() {
+  closePopup();
+  var inp = document.getElementById('camInput');
+  inp.value = '';
+  inp.click();
+});
+
+// Gallery button
+document.getElementById('btnGallery').addEventListener('click', function() {
+  closePopup();
+  var inp = document.getElementById('galInput');
+  inp.value = '';
+  inp.click();
+});
+
+document.getElementById('btnCancel').addEventListener('click', closePopup);
+
+// Close popup when tapping backdrop
+document.getElementById('popup').addEventListener('click', function(e) {
+  if (e.target === this) closePopup();
+});
+
+// ── FILE HANDLING ──
+function handleFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      userImg = img;
+      // update upload zone UI
+      var icon = document.getElementById('uzIcon');
+      icon.innerHTML = '<svg viewBox="0 0 24 24" style="fill:#fff;width:26px;height:26px"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+      icon.classList.add('green');
+      var title = document.getElementById('uzTitle');
+      title.textContent = 'Photo Added!';
+      title.classList.add('green');
+      document.getElementById('uzSub').textContent = 'Tap Retake button below to change';
+      document.getElementById('uploadZone').classList.add('has-photo');
+      redraw();
+      showToast('✅ Photo added!');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById('camInput').addEventListener('change', function() {
+  if (this.files && this.files[0]) handleFile(this.files[0]);
+});
+document.getElementById('galInput').addEventListener('change', function() {
+  if (this.files && this.files[0]) handleFile(this.files[0]);
+});
+
+// ── DRAW CANVAS ──
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x+r, y);
+  c.lineTo(x+w-r, y);
+  c.quadraticCurveTo(x+w, y, x+w, y+r);
+  c.lineTo(x+w, y+h-r);
+  c.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  c.lineTo(x+r, y+h);
+  c.quadraticCurveTo(x, y+h, x, y+h-r);
+  c.lineTo(x, y+r);
+  c.quadraticCurveTo(x, y, x+r, y);
+  c.closePath();
+}
+
+function redraw() {
+  var f = FRAMES[selectedFrame];
+  var W = 600, H = 600;
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  ctx.fillStyle = f.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Dot pattern
+  ctx.fillStyle = 'rgba(0,0,0,0.04)';
+  for (var i = 0; i < W; i += 18)
+    for (var j = 0; j < H; j += 18)
+      ctx.fillRect(i, j, 2.5, 2.5);
+
+  // Photo area
+  var PAD = 28, PH = 358;
+  if (userImg) {
+    ctx.save();
+    roundRect(ctx, PAD, PAD, W-PAD*2, PH, 12);
+    ctx.clip();
+    var iw = userImg.width, ih = userImg.height;
+    var areaW = W-PAD*2, areaH = PH;
+    var scale = Math.max(areaW/iw, areaH/ih);
+    var dw = iw*scale, dh = ih*scale;
+    ctx.drawImage(userImg, PAD+(areaW-dw)/2, PAD+(areaH-dh)/2, dw, dh);
+    ctx.restore();
+  } else {
+    ctx.fillStyle = f.dark;
+    roundRect(ctx, PAD, PAD, W-PAD*2, PH, 12);
+    ctx.fill();
+    ctx.fillStyle = f.accent;
+    ctx.font = 'bold 17px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('📷  Add your photo in Step 2', W/2, PAD+PH/2-8);
+    ctx.font = '13px Nunito, sans-serif';
+    ctx.globalAlpha = 0.6;
+    ctx.fillText('Tap the upload area above', W/2, PAD+PH/2+18);
+    ctx.globalAlpha = 1;
+  }
+
+  // Bottom dark band
+  ctx.fillStyle = f.dark;
+  ctx.fillRect(0, H-190, W, 190);
+
+  // Colour accent bar
+  ctx.fillStyle = f.bg;
+  ctx.fillRect(0, H-193, W, 7);
+
+  // Showroom name
+  var showroom = document.getElementById('inp_show').value || 'Hero MotoCorp';
+  ctx.fillStyle = f.accent;
+  ctx.font = 'bold 27px Rajdhani, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(showroom.toUpperCase(), W/2, H-144);
+
+  // Customer name
+  var cname = document.getElementById('inp_name').value;
+  if (cname) {
+    ctx.fillStyle = f.sub;
+    ctx.font = 'bold 22px Nunito, sans-serif';
+    ctx.fillText(cname, W/2, H-108);
+  }
+
+  // Divider line
+  ctx.strokeStyle = f.accent;
+  ctx.globalAlpha = 0.22;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(W/2-90, H-84); ctx.lineTo(W/2+90, H-84);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Footer strip
+  ctx.fillStyle = f.bg;
+  ctx.fillRect(0, H-66, W, 66);
+  ctx.fillStyle = f.accent;
+  ctx.font = 'bold 14px Rajdhani, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('HERO MotoCorp  ·  Authorised Dealer', W/2, H-36);
+  ctx.font = '12px Nunito, sans-serif';
+  ctx.globalAlpha = 0.65;
+  ctx.fillText('हीरो मोटोकॉर्प  ·  अधिकृत डीलर', W/2, H-16);
+  ctx.globalAlpha = 1;
+
+  // Border
+  ctx.strokeStyle = f.accent;
+  ctx.lineWidth = 6;
+  ctx.strokeRect(4, 4, W-8, H-8);
+  ctx.strokeStyle = f.sub;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(13, 13, W-26, H-26);
+}
+
+// ── DOWNLOAD ──
+function downloadImage() {
+  redraw();
+  var name = document.getElementById('inp_name').value || 'hero';
+  var filename = 'hero-frame-' + name.replace(/\s+/g,'-').toLowerCase() + '.png';
+  try {
+    canvas.toBlob(function(blob) {
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function() { URL.revokeObjectURL(url); }, 1500);
+      showToast('✅ Saved! Share on WhatsApp now');
+    }, 'image/png');
+  } catch(err) {
+    var a = document.createElement('a');
+    a.download = filename;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+    showToast('✅ Saved! Share on WhatsApp now');
+  }
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+
+// ── INIT ──
+redraw();
+</script>
+</body>
+</html>
